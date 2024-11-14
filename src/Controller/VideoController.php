@@ -21,7 +21,7 @@ class VideoController extends AbstractController
         $videoForm->handleRequest($request);
 
         if ($videoForm->isSubmitted()) {
-            $videoService->handleVideoForm($videoForm);
+           return  $videoService->handleVideoForm($videoForm);
         }
 
         return $this->render('video/index.html.twig',
