@@ -9,6 +9,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: VideoRepository::class)]
 class Video
 {
+    const VIDEO_ADDED_SUCCESSFULLY = 'VIDEO_ADDED_SUCCESSFULLY';
+    const VIDEO_INVALID_FORM = 'VIDEO_INVALID_FORM';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
