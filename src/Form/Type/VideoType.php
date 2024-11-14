@@ -45,13 +45,14 @@ class VideoType extends AbstractType
                 FileType::class,
                 [
                     'label' => 'Miniature',
+                    'required' => false,
                 ]
             )
             ->add(
                 'videoFile',
                 FIleType::class,
                 [
-                    'label' => 'Vidéo'
+                    'label' => 'Vidéo',
                 ]
             )
             ->add(
