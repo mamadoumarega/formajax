@@ -1,26 +1,70 @@
 import './styles/app.css';
 
+/**
+ *
+ * @typedef {Object} VideoFormResponse
+ * @property {string} code
+ * @property {Object} errors
+ * @property {string} html
+ */
 const formVideo = document.getElementById('formVideo');
+const videoLists = document.getElementById('videoList');
 
-formVideo.addEventListener('submit', function (event)  {
-    event.preventDefault();
+formVideo.addEventListener('submit', function (e) {
+    e.preventDefault();
 
     fetch(this.action, {
-        body: new FormData(event.target),
-        method: 'POST',
-
-    }).then(r =>{
-        return r.json();
-    }).then(json => {
-        console.log(json);
-    });
+        body: new FormData(e.target),
+        method: 'POST'
+    })
+        .then(response => response.json())
+        .then(json => {
+            handleResponse(json);
+        });
 });
 
-const handleResponse = (response) => {
+/**
+ *
+ * @param response
+ */
+const handleResponse = function (response) {
+    removeErrors();
     switch(response.code) {
-        case 200:
+        case 'VIDEO_ADDED_SUCCESSFULLY':
+            videoLists.innerHTML += response.html;
             break;
-        case 500:
+        case 'VIDEO_INVALID_FORM':
+            handleErrors(response.errors);
             break;
+    }
+};
+
+/**
+ *
+ */
+const removeErrors = function() {
+    const invalidFeedbackElements = document.querySelectorAll('.invalid-feedback');
+    const isInvalidElements = document.querySelectorAll('.is-invalid');
+
+    invalidFeedbackElements.forEach(errorElement => errorElement.remove());
+    isInvalidElements.forEach(isInvalidElement => isInvalidElement.classList.remove('is-invalid'));
+};
+
+/**
+ *
+ * @param errors
+ */
+const handleErrors = function(errors) {
+    if (errors.length === 0) return;
+
+    for (const key in errors) {
+        let element = document.querySelector(`#video_${key}`);
+        element.classList.add('is-invalid');
+
+        let div = document.createElement('div');
+        div.classList.add('invalid-feedback', 'd-block');
+        div.innerText = errors[key];
+
+        element.after(div);
     }
 };
