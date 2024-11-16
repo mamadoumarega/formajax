@@ -12,4 +12,12 @@
             </div>
         </div>
     </div>
+
+    <div class="container-fluid">
+        <div class="row" id="videoList">
+            {% for video in videos %}
+                {% include 'video/video.html.twig' %}
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}
