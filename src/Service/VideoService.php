@@ -3,31 +3,33 @@
 namespace App\Service;
 
 use App\Entity\Video;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Exception\ORMException;
-use Doctrine\ORM\OptimisticLockException;
-use Exception;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
-use function PHPUnit\Framework\throwException;
+use Twig\Environment;
 
 class VideoService
 {
     protected EntityManagerInterface $entityManager;
+    protected Environment $environment;
     protected ParameterBagInterface $parameterBag;
 
     /**
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
+     * @param Environment $environment
      * @param ParameterBagInterface $parameterBag
      */
-    public function __construct(EntityManagerInterface $entityManager, ParameterBagInterface $parameterBag)
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        Environment $environment,
+        ParameterBagInterface $parameterBag
+    )
     {
         $this
             ->setEntityManager($entityManager)
+            ->setEnvironment($environment)
             ->setParameterBag($parameterBag)
         ;
     }
@@ -47,6 +49,25 @@ class VideoService
     public function setEntityManager(EntityManagerInterface $entityManager): self
     {
         $this->entityManager = $entityManager;
+
+        return $this;
+    }
+
+    /**
+     * @return Environment
+     */
+    public function getEnvironment(): Environment
+    {
+        return $this->environment;
+    }
+
+    /**
+     * @param Environment $environment
+     * @return $this
+     */
+    public function setEnvironment(Environment $environment): self
+    {
+        $this->environment = $environment;
 
         return $this;
     }
@@ -120,7 +141,9 @@ class VideoService
         return new JsonResponse(
             [
                 'code' => Video::VIDEO_ADDED_SUCCESSFULLY,
-                'html' => ''
+                'html' => $this->getEnvironment()->render('video/video.html.twig', [
+                    'video' => $video,
+                ])
             ]
         );
     }
@@ -133,8 +156,8 @@ class VideoService
     {
         return new JsonResponse(
             [
-                'code' => Response::HTTP_INTERNAL_SERVER_ERROR,
-                'html' => ''
+                'code' => Video::VIDEO_INVALID_FORM,
+                'errors' => $this->getErrorMessages($videoForm),
             ]
         );
     }
@@ -150,5 +173,22 @@ class VideoService
         $uploadedFile->move($directory, $newFileName);
 
         return $newFileName;
+    }
+
+    private function getErrorMessages(FormInterface $form): array
+    {
+        $errors = [];
+
+        foreach ($form->getErrors() as $error) {
+            $errors[] = $error->getMessage();
+        }
+
+        foreach ($form->all() as $child) {
+            if (!$child->isValid()) {
+                $errors[$child->getName()] = $this->getErrorMessages($child);
+            }
+        }
+
+        return $errors;
     }
 }
